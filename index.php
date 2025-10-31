@@ -1,15 +1,14 @@
 <?php 
+include('lib/general_functions.php');
 // ===============================
-// ENTORNO (debug)
+// ZONA DE INICIALIZACIÓN
 // ===============================
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+bootstrap();
 
 // ===============================
 // LÓGICA DE NEGOCIO
 // ===============================
-function buildLinks(): array {
+function buildLinks() {
     return [
         'Crear usuario' => 'lib/user_create.php',
         'Leer usuarios' => 'lib/user_index.php',
@@ -18,14 +17,15 @@ function buildLinks(): array {
 
 $links = buildLinks();
 
-function paintLinks(array $links): string {
-    $out = '';
-    foreach ($links as $label => $href) {
-        $safeLabel = htmlspecialchars($label, ENT_QUOTES, 'UTF-8');
-        $safeHref  = htmlspecialchars($href, ENT_QUOTES, 'UTF-8');
-        $out .= '<a class="btn" href="'.$safeHref.'">'.$safeLabel.'</a>';
+// ===============================
+// LÓGICA DE PRESENTACIÓN
+// ===============================
+function paintLinks($links) {
+    $output = '';
+    foreach ($links as $rowIndex => $rowData) {
+        $output .= '<a class="btn" href="' . $rowData . '">' . $rowIndex . '</a>';
     }
-    return $out;
+    return $output;
 }
 
 $linksMarkup = paintLinks($links);
@@ -43,7 +43,7 @@ $linksMarkup = paintLinks($links);
     <section class="card gradient-border pad-4 stack-4 center" style="max-width:500px;">
       <h1 class="halo" style="text-align:center;">Create Read Update Delete</h1>
       <div class="stack-3" style="text-align:center;">
-        <?= $linksMarkup ?>
+        <?php echo $linksMarkup; ?>
       </div>
     </section>
   </main>

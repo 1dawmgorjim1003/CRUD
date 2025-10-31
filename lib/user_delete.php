@@ -1,20 +1,12 @@
-<?php 
+<?php
+include('general_functions.php');
 // ===============================
-// INICIALIZACIÓN DEL ENTORNO
+// ZONA DE INICIALIZACIÓN
 // ===============================
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+bootstrap();
 
 // ===============================
-// FUNCIONES DE DEBUGUEO
-// ===============================
-function dump($var){
-    echo '<pre>'.print_r($var,1).'</pre>';
-}
-
-// ===============================
-// FUNCIONES DE DEBUGUEO
+// LÓGICA DE NEGOCIO
 // ===============================
 //Obtener el id del usuario a través de la URL
 function takeGet() {
@@ -51,6 +43,7 @@ function deleteUserOfCsv($routeFile, $userID) {
         return $isDeleted;
     }
 }
+
 $isDeleted = false;
 
 // Si el formulario ha sido enviado, se borra el usuario
@@ -65,12 +58,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 $incomingData = takeGet();
 
 //Si se ha eliminado el usuario, se vuelve al listado de usuarios
-function goBack($isDeleted) {
-    if ($isDeleted == true) {
-        header('Location: user_index.php');
-        exit();
-    }
-}
 
 goBack($isDeleted);
 

@@ -1,37 +1,13 @@
 <?php 
+include('general_functions.php');
 // ===============================
-// INICIALIZACIÓN DEL ENTORNO
+// ZONA DE INICIALIZACIÓN
 // ===============================
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-// ===============================
-// FUNCIONES DE DEBUGUEO
-// ===============================
-function dump($var){
-    echo '<pre>'.print_r($var,1).'</pre>';
-}
+bootstrap();
 
 // ===============================
 // LÓGICA DE NEGOCIO
 // ===============================
-//Se carga el archivo CSV
-function loadCSV($routeFile) {
-    $data = [];
-    if (!is_readable($routeFile)) {
-        echo '<p>No se ha podido leer el archivo <strong>'. htmlspecialchars($routeFile) .'</strong></p>';
-    } else {
-        if (($pointer = fopen($routeFile, 'r')) !== FALSE) {
-            while (($row = fgetcsv($pointer)) !== FALSE) {
-                $data[] = $row;
-            }
-            fclose($pointer);
-        }
-    }
-    return $data;
-}
-
 //Se lee el la ID de usuario dada en la URL y se carga la información de este
 function readInput($data) {
     $user_id = $_GET['id'] ?? null;
@@ -55,6 +31,7 @@ function getUserMarkup($user) {
     }
 
     $fields = [
+        'Avatar' => $user[8] ?? '',
         'ID' => $user[0] ?? '',
         'Usuario' => $user[1] ?? '',
         'Email' => $user[2] ?? '',
@@ -80,24 +57,45 @@ function getUserMarkup($user) {
     <tbody>';
 
     foreach ($fields as $rowIndex => $rowData) {
-        $output .= '<tr>
-        <th style="
-            width: 38%;
-            text-align: left;
-            font-weight: 600;
-            color: var(--text-soft);
-            background: color-mix(in oklab, var(--surface) 60%, var(--surface-2));
-            border-radius: var(--r-md) 0 0 var(--r-md);
-            padding: .7rem 1rem;
-        ">'.htmlspecialchars($rowIndex).'</th>
-        <td style="
-            padding: .7rem 1rem;
-            background: var(--surface);
-            border-radius: 0 var(--r-md) var(--r-md) 0;
-            box-shadow: inset 0 0 0 1px var(--border);
-            color: var(--text);
-        ">'.htmlspecialchars($rowData).'</td>
-        </tr>';
+        if ($rowIndex == 'Avatar') {
+            $output .= '<tr>
+            <th style="
+                width: 38%;
+                text-align: left;
+                font-weight: 600;
+                color: var(--text-soft);
+                background: color-mix(in oklab, var(--surface) 60%, var(--surface-2));
+                border-radius: var(--r-md) 0 0 var(--r-md);
+                padding: .7rem 1rem;
+            ">'.htmlspecialchars($rowIndex).'</th>
+            <td style="
+                padding: .7rem 1rem;
+                background: var(--surface);
+                border-radius: 0 var(--r-md) var(--r-md) 0;
+                box-shadow: inset 0 0 0 1px var(--border);
+                color: var(--text);
+            "><img src="'.htmlspecialchars($rowData).'" width="100px" height="100px" /></td>
+            </tr>';
+        } else {
+            $output .= '<tr>
+            <th style="
+                width: 38%;
+                text-align: left;
+                font-weight: 600;
+                color: var(--text-soft);
+                background: color-mix(in oklab, var(--surface) 60%, var(--surface-2));
+                border-radius: var(--r-md) 0 0 var(--r-md);
+                padding: .7rem 1rem;
+            ">'.htmlspecialchars($rowIndex).'</th>
+            <td style="
+                padding: .7rem 1rem;
+                background: var(--surface);
+                border-radius: 0 var(--r-md) var(--r-md) 0;
+                box-shadow: inset 0 0 0 1px var(--border);
+                color: var(--text);
+            ">'.htmlspecialchars($rowData).'</td>
+            </tr>';
+        }
     }
     
     $output .= '</tbody></table></div>';

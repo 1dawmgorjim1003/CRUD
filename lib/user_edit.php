@@ -1,17 +1,9 @@
 <?php 
+include('general_functions.php');
 // ===============================
-// INICIALIZACIÓN DEL ENTORNO
+// ZONA DE INICIALIZACIÓN
 // ===============================
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-// ===============================
-// FUNCIONES DE DEBUGUEO
-// ===============================
-function dump($var){
-    echo '<pre>'.print_r($var,1).'</pre>';
-}
+bootstrap();
 
 // ===============================
 // LÓGICA DE NEGOCIO
@@ -30,22 +22,6 @@ function takePost($user) {
         $incomingData[7] = htmlspecialchars($_POST['fecha_nacimiento'] ?? '');
     }
     return $incomingData;
-}
-
-//Cargar el CSV
-function loadCSV($routeFile) {
-    $data = [];
-    if (!is_readable($routeFile)) {
-        echo 'No se ha podido leer el archivo '. $routeFile;
-    } else {
-        if (($pointer = fopen($routeFile, 'r')) !== FALSE) {
-            while (($row = fgetcsv($pointer)) !== FALSE) {
-                $data[] = $row;
-            }
-            fclose($pointer);
-        }
-    }
-    return $data;
 }
 
 //Sacar la información del usuario modificado según ID
@@ -70,11 +46,6 @@ function readInput($data) {
     }
     echo "No se ha proporcionado un ID de usuario.";
     return null;
-}
-
-//Definir los campos del formulario
-function buildForm() {
-    return array('usuario','email','rol','nombre','apellidos','fecha_nacimiento');
 }
 
 //Actualizar en el archivo CSV los nuevos datos del usuario
@@ -107,15 +78,6 @@ $user = readInput($data);
 $incomingData = takePost($user);
 $form = buildForm();
 $isWrited = writeCSV('../data/users.csv', $incomingData, $data);
-
-//Cuando se han modificado los datos, se vuelve al listado de usuarios
-function goBack($isWrited) {
-    if ($isWrited == true) {
-        header('Location: user_index.php');
-        exit();
-    }
-}
-
 goBack($isWrited);
 
 // ===============================

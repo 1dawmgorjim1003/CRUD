@@ -1,37 +1,13 @@
 <?php 
+include('general_functions.php');
 // ===============================
-// INICIALIZACIÓN DEL ENTORNO
+// ZONA DE INICIALIZACIÓN
 // ===============================
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-// ===============================
-// FUNCIONES DE DEBUGUEO
-// ===============================
-function dump($var){
-    echo '<pre>'.print_r($var,1).'</pre>';
-}
+bootstrap();
 
 // ===============================
 // LÓGICA DE NEGOCIO
 // ===============================
-//Se carga el CSV
-function loadCSV($routeFile) {
-    $data = [];
-    if (!is_readable($routeFile)) {
-        echo '<p>No se ha podido leer el archivo <strong>'. htmlspecialchars($routeFile) .'</strong></p>';
-    } else {
-        if (($pointer = fopen($routeFile, 'r')) !== FALSE) {
-            while (($row = fgetcsv($pointer)) !== FALSE) {
-                $data[] = $row;
-            }
-            fclose($pointer);
-        }
-    }
-    return $data;
-}
-
 $data = loadCSV('../data/users.csv');
 
 // ===============================
@@ -69,7 +45,7 @@ function getDataMarkup($data) {
     }
 }
 
-$datMarkup = getDataMarkup($data);
+$dataMarkup = getDataMarkup($data);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -88,7 +64,7 @@ $datMarkup = getDataMarkup($data);
         <p class="text-soft" style="font-size:0.95rem;">Consulta los usuarios registrados en el sistema</p>
       </header>
 
-      <?= $datMarkup ?>
+      <?php echo $dataMarkup; ?>
 
       <div style="text-align:center;margin-top:1rem;">
         <a class="btn btn-outline" href="../index.php">Volver al panel</a>

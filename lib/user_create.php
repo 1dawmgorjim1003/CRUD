@@ -1,22 +1,15 @@
-<?php 
-// ===============================
-// INICIALIZACIÓN DEL ENTORNO
-// ===============================
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+<?php
+include('general_functions.php');
 
 // ===============================
-// FUNCIONES DE DEBUGUEO
+// ZONA DE INICIALIZACIÓN
 // ===============================
-function dump($var){
-    echo '<pre>'.print_r($var,1).'</pre>';
-}
+bootstrap();
 
 // ===============================
 // LÓGICA DE NEGOCIO
 // ===============================
-//Incrementar un usuario cuando este se va a crear
+// Incrementar un usuario cuando este se va a crear
 function incrementUserID() {
     $lastID = (int)file_get_contents('../data/user_id_counter.txt');
     $newID = $lastID + 1;
@@ -24,7 +17,7 @@ function incrementUserID() {
     return $newID;
 }
 
-//Coger los datos del nuevo usuario a través de POST
+// Coger los datos del nuevo usuario a través de POST
 function takePost() {
     $incomingData = [];
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -36,16 +29,28 @@ function takePost() {
         $incomingData['nombre'] = htmlspecialchars($_POST['nombre'] ?? '');
         $incomingData['apellidos'] = htmlspecialchars($_POST['apellidos'] ?? '');
         $incomingData['fecha_nacimiento']  = htmlspecialchars($_POST['fecha_nacimiento'] ?? '');
+
+        if (isset($_FILES['avatar'])) {
+            $avatarTmpName = $_FILES['avatar']['tmp_name'];
+            $avatarName = $_FILES['avatar']['name'];
+            $avatarExt = pathinfo($avatarName, PATHINFO_EXTENSION);
+            
+            $avatarName = 'avatar_' . time() . '.' . $avatarExt;
+            $avatarDir = '../src/avatars/';
+
+            $avatarPath = $avatarDir . $avatarName;
+
+            if (move_uploaded_file($avatarTmpName, $avatarPath)) {
+                $incomingData['avatar'] = $avatarPath;
+            } else {
+                $incomingData['avatar'] = '';
+            }
+        }
     }
     return $incomingData;
 }
 
-//Crear valores de los campos "name" del formulario
-function buildForm() {
-    return ['usuario','email','rol','nombre','apellidos','fecha_nacimiento'];
-}
-
-//Escribir en el CSV el nuevo usuario
+// Escribir en el CSV el nuevo usuario
 function writeCSV($routeFile, $incomingData) {
     if (!is_readable($routeFile)) {
         echo 'No se puede leer el archivo ' . $routeFile;
@@ -65,9 +70,9 @@ writeCSV('../data/users.csv', $incomingData);
 // ===============================
 // LÓGICA DE PRESENTACIÓN
 // ===============================
-//Pintar por pantalla el formulario
+// Pintar por pantalla el formulario
 function paintForm($info) {
-    $output  = '<form class="stack-2" action="' . $_SERVER['PHP_SELF'] . '" method="post" style="gap:0.8rem;">
+    $output  = '<form class="stack-2" action="' . $_SERVER['PHP_SELF'] . '" method="post" enctype="multipart/form-data" style="gap:0.8rem;">
     <div class="form-banner-invalid" role="alert" aria-live="polite">⚠️ <span>Revisa los campos marcados.</span></div>
     <div class="field"><label class="label" for="usuario">Usuario</label><input class="input" id="usuario" type="text" name="'.$info[0].'" required></div>
     <div class="field"><label class="label" for="email">Email</label><input class="input" id="email" type="email" name="'.$info[1].'" required></div>
@@ -75,6 +80,7 @@ function paintForm($info) {
     <div class="field"><label class="label" for="nombre">Nombre</label><input class="input" id="nombre" type="text" name="'.$info[3].'" required></div>
     <div class="field"><label class="label" for="apellidos">Apellidos</label><input class="input" id="apellidos" type="text" name="'.$info[4].'" required></div>
     <div class="field"><label class="label" for="fecha_nacimiento">Fecha de nacimiento</label><input class="input" id="fecha_nacimiento" type="date" name="'.$info[5].'" required></div>
+    <div class="field"><label class="label" for="avatar">Avatar</label><input class="input" id="avatar" type="file" name="'.$info[6].'" accept="image/*" required></div>
     <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-top:.8rem">
     <button class="btn" type="submit">Crear usuario</button>
     <a class="btn btn-outline" href="../index.php">Volver</a>   
