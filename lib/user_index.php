@@ -8,12 +8,29 @@ bootstrap();
 // ===============================
 // LÓGICA DE NEGOCIO
 // ===============================
-$data = loadCSV('../data/users.csv');
-
+//Leer todos los usuarios de BBDD
+function getData(){
+    $sql = 'SELECT id,usuario,email,rol,fecha_alta,nombre,apellidos,fecha_nacimiento FROM users';
+    $stmt = getPDO()->query($sql);
+    $rowCount = $stmt->rowCount();
+    $data = array_fill(0,$rowCount,[]);
+    $counter = 0;
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+      array_push($data[$counter],$row['id']);
+      array_push($data[$counter],$row['usuario']);
+      array_push($data[$counter],$row['email']);
+      array_push($data[$counter],$row['rol']);
+      array_push($data[$counter],$row['fecha_alta']);
+      $counter++;
+    }
+    return $data;
+}
+$data = getData();
+// dump($data);
 // ===============================
 // PRESENTACIÓN
 // ===============================
-//Se muestra los datos del archivo CSV
+//Se muestra los usuarios de BBDD
 function getDataMarkup($data) {
     $output = '';
     if (empty($data)) {

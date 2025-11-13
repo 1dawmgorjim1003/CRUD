@@ -8,11 +8,33 @@ function bootstrap() {
     error_reporting(E_ALL);
 }
 
+//Conexión BBDD
+function getPDO() {
+    // var_dump(new PDO('mysql:dbname=crud_mysql;host=localhost','crud_mysql','crud_mysql'));
+    // var_dump(new PDO('mysql:dbname=database1;host=172.22.235.10','root','root'));
+    // return new PDO('mysql:dbname=database1;host=172.22.235.10','root','root');
+    return new PDO('mysql:dbname=crud_mysql;host=localhost','crud_mysql','crud_mysql');
+}
+
+getPDO();
+
 // ===============================
 // FUNCIONES DE DEBUGUEO
 // ===============================
+//Función debugueo simple
 function dump($var){
     echo '<pre>'.print_r($var,1).'</pre>';
+}
+
+//Función debugeo que devuelve la estrucutra de la clase
+function getClassStructure($var) {
+    if (is_object($var)) {
+        $ref = new ReflectionClass($var);
+        $props = $ref->getMethods(ReflectionProperty::IS_PUBLIC | ReflectionProperty::IS_PROTECTED);
+        foreach($props as $prop) {
+            echo '<pre>'.$prop->getName().'</pre>';
+        }
+    }
 }
 
 // ===============================
@@ -29,22 +51,6 @@ function goBack($boolean) {
 //Define los valores de los campos name cuando creamos un usuario o editamos la información de este
 function buildForm() {
     return array('usuario','email','rol','nombre','apellidos','fecha_nacimiento','avatar');
-}
-
-//Cargar un CSV en una variable
-function loadCSV($routeFile) {
-    $data = [];
-    if (!is_readable($routeFile)) {
-        echo 'No se ha podido leer el archivo'. $routeFile;
-    } else {
-        if (($pointer = fopen($routeFile, 'r')) !== FALSE) {
-            while (($row = fgetcsv($pointer)) !== FALSE) {
-                $data[] = $row;
-            }
-            fclose($pointer);
-        }
-    }
-    return $data;
 }
 
 ?>

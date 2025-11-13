@@ -8,7 +8,7 @@ bootstrap();
 // ===============================
 // LÓGICA DE NEGOCIO
 // ===============================
-//Obtener el id del usuario a través de la URL
+//Obtener el id del usuario a borrar a través de la URL
 function takeGet() {
     $userID = 0;
     if (isset($_GET['id'])) {
@@ -17,32 +17,16 @@ function takeGet() {
     return $userID;
 }
 
-// Eliminar el usuario del archivo CSV
-function deleteUserOfCsv($routeFile, $userID) {
-    $data = [];
-    $isDeleted = false;
-    if (!is_readable($routeFile)) {
-        echo 'No se puede leer el archivo ' . $routeFile;
-        return;
-    } else {
-        if (($pointer = fopen($routeFile, 'r+b')) !== false) {
-            while (($row = fgetcsv($pointer)) !== false) {
-                if ($row[0] == $userID) {
-                    continue;
-                }
-                $data[] = $row;
-            }
-            ftruncate($pointer, 0);
-            rewind($pointer);
-            foreach ($data as $row) {
-                fputcsv($pointer, $row);
-            }
-            $isDeleted = true;
-            fclose($pointer);
-        }
-        return $isDeleted;
-    }
+// Eliminar el usuario BBDD
+function deleteUserOfDataBase($userID) {
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $sql = 'DELETE FROM users where ID=' . $userID . ';';
+        $stmt = getPDO()->prepare($sql);
+        $stmt->execute();
+        return true;
+    }   
 }
+
 
 $isDeleted = false;
 
@@ -50,8 +34,7 @@ $isDeleted = false;
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     global $isDeleted;
     $userID = htmlspecialchars($_POST['id']); // ID del usuario a eliminar
-    $isDeleted = deleteUserOfCsv('../data/users.csv', $userID); // Eliminar el usuario
-    echo "<p>Usuario eliminado exitosamente.</p>";
+    $isDeleted = deleteUserOfDataBase($userID); // Eliminar el usuario
 }
 
 // Obtener el ID del usuario desde la URL

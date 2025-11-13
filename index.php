@@ -4,6 +4,8 @@ include('lib/general_functions.php');
 // ZONA DE INICIALIZACIÓN
 // ===============================
 bootstrap();
+// getClassStructure(getPDO());
+// dump(getPDO());
 
 // ===============================
 // LÓGICA DE NEGOCIO

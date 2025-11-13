@@ -9,17 +9,24 @@ bootstrap();
 // LÓGICA DE NEGOCIO
 // ===============================
 //Se lee el la ID de usuario dada en la URL y se carga la información de este
-function readInput($data) {
-    $user_id = $_GET['id'] ?? null;
-    if ($user_id === null) return null;
-    foreach ($data as $row) {
-        if ($row[0] == $user_id) return $row;
+function getData() {
+    $sql = 'SELECT id,usuario,email,rol,fecha_alta,nombre,apellidos,fecha_nacimiento,avatar FROM users where ID=' . $_GET['id'] . ';';
+    $user = [];
+    foreach  (getPDO()->query($sql) as $row) {
+        array_push($user,$row['id']);    
+        array_push($user,$row['usuario']);    
+        array_push($user,$row['email']);    
+        array_push($user,$row['rol']);    
+        array_push($user,$row['fecha_alta']);    
+        array_push($user,$row['nombre']);    
+        array_push($user,$row['apellidos']);
+        array_push($user,$row['fecha_nacimiento']);
+        array_push($user,$row['avatar']);
     }
-    return null;
+    return $user;
 }
 
-$data = loadCSV('../data/users.csv');
-$user = readInput($data);
+$user = getData();
 
 // ===============================
 // LÓGICA DE PRESENTACIÓN

@@ -9,19 +9,11 @@ bootstrap();
 // ===============================
 // LÓGICA DE NEGOCIO
 // ===============================
-// Incrementar un usuario cuando este se va a crear
-function incrementUserID() {
-    $lastID = (int)file_get_contents('../data/user_id_counter.txt');
-    $newID = $lastID + 1;
-    file_put_contents('../data/user_id_counter.txt', $newID);
-    return $newID;
-}
 
 // Coger los datos del nuevo usuario a través de POST
 function takePost() {
     $incomingData = [];
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
-        $incomingData['id'] = incrementUserID();
         $incomingData['usuario'] = htmlspecialchars($_POST['usuario'] ?? '');
         $incomingData['email'] = htmlspecialchars($_POST['email'] ?? '');
         $incomingData['rol'] = htmlspecialchars($_POST['rol'] ?? '');
@@ -31,41 +23,47 @@ function takePost() {
         $incomingData['fecha_nacimiento']  = htmlspecialchars($_POST['fecha_nacimiento'] ?? '');
 
         if (isset($_FILES['avatar'])) {
-            $avatarTmpName = $_FILES['avatar']['tmp_name'];
-            $avatarName = $_FILES['avatar']['name'];
-            $avatarExt = pathinfo($avatarName, PATHINFO_EXTENSION);
-            
-            $avatarName = 'avatar_' . time() . '.' . $avatarExt;
-            $avatarDir = '../src/avatars/';
+          $avatarTmpName = $_FILES['avatar']['tmp_name'];
+          $avatarName = $_FILES['avatar']['name'];
+          $avatarExt = pathinfo($avatarName, PATHINFO_EXTENSION);
+          
+          $avatarName = 'avatar_' . time() . '.' . $avatarExt;
+          $avatarDir = '../src/avatars/';
+          
+          $avatarPath = $avatarDir . $avatarName;
 
-            $avatarPath = $avatarDir . $avatarName;
-
-            if (move_uploaded_file($avatarTmpName, $avatarPath)) {
-                $incomingData['avatar'] = $avatarPath;
+          if (move_uploaded_file($avatarTmpName, $avatarPath)) {
+              $incomingData['avatar'] = $avatarPath;
             } else {
-                $incomingData['avatar'] = '';
-            }
+              $incomingData['avatar'] = '';
+          }
         }
     }
     return $incomingData;
 }
 
-// Escribir en el CSV el nuevo usuario
-function writeCSV($routeFile, $incomingData) {
-    if (!is_readable($routeFile)) {
-        echo 'No se puede leer el archivo ' . $routeFile;
-        return;
-    }
-    if (!empty($incomingData)) {
-        $pointer = fopen($routeFile, 'ab');
-        fputcsv($pointer, $incomingData);
-        fclose($pointer);
+
+// Escribir BBDD el nuevo usuario
+function writeDatabase($incomingData) {
+    if ($_SERVER["REQUEST_METHOD"] === "POST") {
+        $sql = 'INSERT INTO users (usuario, email, rol, fecha_alta, nombre, apellidos, fecha_nacimiento, avatar) VALUES (?,?,?,?,?,?,?,?)';
+        $stmt = getPDO()->prepare($sql);
+        $stmt->bindParam(1, $incomingData['usuario']);
+        $stmt->bindParam(2, $incomingData['email']);
+        $stmt->bindParam(3, $incomingData['rol']);
+        $stmt->bindParam(4, $incomingData['fecha_alta']);
+        $stmt->bindParam(5, $incomingData['nombre']);
+        $stmt->bindParam(6, $incomingData['apellidos']);
+        $stmt->bindParam(7, $incomingData['fecha_nacimiento']);
+        $stmt->bindParam(8, $incomingData['avatar']);
+        $stmt->execute();
     }
 }
 
 $incomingData = takePost();
+// dump($incomingData);
 $info = buildForm();
-writeCSV('../data/users.csv', $incomingData);
+writeDatabase($incomingData);
 
 // ===============================
 // LÓGICA DE PRESENTACIÓN

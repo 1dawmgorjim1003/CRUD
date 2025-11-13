@@ -8,92 +8,68 @@ bootstrap();
 // ===============================
 // LÓGICA DE NEGOCIO
 // ===============================
-//Leer los datos del formulario al modificar los datos
-function takePost($user) {
-    $incomingData = [];
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $incomingData[0] = $_POST['id'];  // Obtener el ID del formulario
-        $incomingData[1] = htmlspecialchars($_POST['usuario'] ?? '');
-        $incomingData[2] = htmlspecialchars($_POST['email'] ?? '');
-        $incomingData[3] = htmlspecialchars($_POST['rol'] ?? '');
-        $incomingData[4] = $user[4];
-        $incomingData[5] = htmlspecialchars($_POST['nombre'] ?? '');
-        $incomingData[6] = htmlspecialchars($_POST['apellidos'] ?? '');
-        $incomingData[7] = htmlspecialchars($_POST['fecha_nacimiento'] ?? '');
-    }
-    return $incomingData;
-}
-
-//Sacar la información del usuario modificado según ID
-function readInput($data) {
-    $user_id = isset($_GET['id']) ? $_GET['id'] : null;
-    if ($user_id == null) {
-        $user_id = $_POST['id'];
-    }
-    if ($user_id !== null) {
-        $user = null;
-        foreach ($data as $rowIndex => $rowData) {
-            if ($rowData[0] == $user_id) {
-                $user = $rowData;
-                break;
-            }
-        }
-        if ($user === null) {
-            echo "Usuario no encontrado.";
-            return null;
+//Leer los datos del formulario por defecto del usuario
+function getData() {
+    if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+        $sql = 'SELECT id,usuario,email,rol,fecha_alta,nombre,apellidos,fecha_nacimiento FROM users where ID=' . $_GET['id'] . ';';
+        $user = [];
+        foreach  (getPDO()->query($sql) as $row) {
+            array_push($user,$row['id']);    
+            array_push($user,$row['usuario']);    
+            array_push($user,$row['email']);    
+            array_push($user,$row['rol']);    
+            array_push($user,$row['fecha_alta']);    
+            array_push($user,$row['nombre']);    
+            array_push($user,$row['apellidos']);
+            array_push($user,$row['fecha_nacimiento']);
         }
         return $user;
-    }
-    echo "No se ha proporcionado un ID de usuario.";
-    return null;
+    }   
 }
 
-//Actualizar en el archivo CSV los nuevos datos del usuario
-function writeCSV($routeFile, $incomingData, $data) {    
-    $isWrited = false;
-    if (!empty($incomingData)){
-        foreach ($data as $rowIndex => $rowData) {
-            if ($rowData[0] == $incomingData[0]) {
-                $data[$rowIndex] = $incomingData;
-                break;
-            }
-        }
-        if (($pointer = fopen($routeFile, 'w')) !== FALSE) {
-            foreach ($data as $row) {
-                fputcsv($pointer, $row);
-            }
-            fclose($pointer);
-            echo 'Datos del usuario actualizados correctamente.';
-            $isWrited = true;
-        } else {
-            echo 'No se pudo abrir el archivo para escribir.';
-        }
-        return $isWrited;
+//Actualizar BBDD con los nuevos datos del usuario
+function writeDatabase($user) {
+    if ($_SERVER["REQUEST_METHOD"] === "POST") {
+        $user = $_POST['user'];
+        // dump($user);
+        $pdo = getPDO();
+        $sql = "UPDATE users 
+                SET 
+                    usuario = " . $pdo->quote($user[1]) . ",
+                    email = " . $pdo->quote($user[2]) . ",
+                    rol = " . $pdo->quote($user[3]) . ",
+                    nombre = " . $pdo->quote($user[4]) . ",
+                    apellidos = " . $pdo->quote($user[6]) . ",
+                    fecha_nacimiento = " . $pdo->quote($user[6]) . "
+                WHERE id = " . intval($user[0]) . ";";
+        // dump($sql);
+        $stmt = $pdo->query($sql);
+        return true;
     }
-   
+    return false;
 }
 
-$data = loadCSV('../data/users.csv');
-$user = readInput($data);
-$incomingData = takePost($user);
+
+$user = getData();
+// dump($user);
 $form = buildForm();
-$isWrited = writeCSV('../data/users.csv', $incomingData, $data);
+$isWrited = writeDatabase($user);
 goBack($isWrited);
 
 // ===============================
 // LÓGICA DE PRESENTACIÓN
 // ===============================
 //Se pinta el formulario para editar la información del usuario, mostrando por defecto los datos antiguos en sus respectivos campos
+//Se envía por POST un array con los nuevos datos del usuario.
 function paintForm($form, $user) {
     $output  = '<form class="stack-2" action="' . $_SERVER['PHP_SELF'] . '" method="post" style="gap:.8rem;">
-    <input type="hidden" name="id" value="' . htmlspecialchars($user[0] ?? '', ENT_QUOTES, 'UTF-8') . '">
     <div class="form-banner-invalid" role="alert" aria-live="polite">⚠️ <span>Revisa los campos marcados.</span></div>
-    <div class="field"><label class="label" for="usuario">Usuario</label><input class="input" id="usuario" type="text" name="'.$form[0].'" value="' . htmlspecialchars($user[1] ?? '', ENT_QUOTES, 'UTF-8') . '" required></div>
-    <div class="field"><label class="label" for="email">Email</label><input class="input" id="email" type="email" name="'.$form[1].'" value="' . htmlspecialchars($user[2] ?? '', ENT_QUOTES, 'UTF-8') . '" required></div>
-    <div class="field"><label class="label" for="rol">Rol</label><input class="input" id="rol" type="text" name="'.$form[2].'" value="' . htmlspecialchars($user[3] ?? '', ENT_QUOTES, 'UTF-8') . '" required></div>
-    <div class="field"><label class="label" for="nombre">Nombre</label><input class="input" id="nombre" type="text" name="'.$form[3].'" value="' . htmlspecialchars($user[5] ?? '', ENT_QUOTES, 'UTF-8') . '" required></div>
-    <div class="field"><label class="label" for="apellidos">Apellidos</label><input class="input" id="apellidos" type="text" name="'.$form[4].'" value="' . htmlspecialchars($user[6] ?? '', ENT_QUOTES, 'UTF-8') . '" required></div>
-    <div class="field"><label class="label" for="fecha_nacimiento">Fecha de nacimiento</label><input class="input" id="fecha_nacimiento" type="date" name="'.$form[5].'" value="' . htmlspecialchars($user[7] ?? '', ENT_QUOTES, 'UTF-8') . '" required></div>
+    <div class="field"><label class="label" for="usuario">Usuario</label><input class="input" id="usuario" type="text" name="user[]" value="' . htmlspecialchars($user[1] ?? '', ENT_QUOTES, 'UTF-8') . '" required></div>
+    <div class="field"><label class="label" for="email">Email</label><input class="input" id="email" type="email" name="user[]" value="' . htmlspecialchars($user[2] ?? '', ENT_QUOTES, 'UTF-8') . '" required></div>
+    <div class="field"><label class="label" for="rol">Rol</label><input class="input" id="rol" type="text" name="user[]" value="' . htmlspecialchars($user[3] ?? '', ENT_QUOTES, 'UTF-8') . '" required></div>
+    <div class="field"><label class="label" for="nombre">Nombre</label><input class="input" id="nombre" type="text" name="user[]" value="' . htmlspecialchars($user[5] ?? '', ENT_QUOTES, 'UTF-8') . '" required></div>
+    <div class="field"><label class="label" for="apellidos">Apellidos</label><input class="input" id="apellidos" type="text" name="user[]" value="' . htmlspecialchars($user[6] ?? '', ENT_QUOTES, 'UTF-8') . '" required></div>
+    <div class="field"><label class="label" for="fecha_nacimiento">Fecha de nacimiento</label><input class="input" id="fecha_nacimiento" type="date" name="user[]" value="' . htmlspecialchars($user[7] ?? '', ENT_QUOTES, 'UTF-8') . '" required></div>
     <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-top:.6rem">
     <button class="btn" type="submit">Actualizar usuario</button>
     <a class="btn btn-outline" href="user_index.php">Cancelar</a>
