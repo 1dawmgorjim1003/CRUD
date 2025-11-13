@@ -31,7 +31,7 @@ function getData() {
 function writeDatabase($user) {
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $user = $_POST['user'];
-        // dump($user);
+        dump($user);
         $pdo = getPDO();
         $sql = "UPDATE users 
                 SET 
@@ -39,12 +39,12 @@ function writeDatabase($user) {
                     email = " . $pdo->quote($user[2]) . ",
                     rol = " . $pdo->quote($user[3]) . ",
                     nombre = " . $pdo->quote($user[4]) . ",
-                    apellidos = " . $pdo->quote($user[6]) . ",
+                    apellidos = " . $pdo->quote($user[5]) . ",
                     fecha_nacimiento = " . $pdo->quote($user[6]) . "
                 WHERE id = " . intval($user[0]) . ";";
-        // dump($sql);
+        dump($sql);
         $stmt = $pdo->query($sql);
-        return true;
+        // return true;
     }
     return false;
 }
@@ -63,6 +63,7 @@ goBack($isWrited);
 //Se envía por POST un array con los nuevos datos del usuario.
 function paintForm($form, $user) {
     $output  = '<form class="stack-2" action="' . $_SERVER['PHP_SELF'] . '" method="post" style="gap:.8rem;">
+    <input type="hidden" name="user[]" value="' . htmlspecialchars($user[0] ?? '', ENT_QUOTES, 'UTF-8') . '">
     <div class="form-banner-invalid" role="alert" aria-live="polite">⚠️ <span>Revisa los campos marcados.</span></div>
     <div class="field"><label class="label" for="usuario">Usuario</label><input class="input" id="usuario" type="text" name="user[]" value="' . htmlspecialchars($user[1] ?? '', ENT_QUOTES, 'UTF-8') . '" required></div>
     <div class="field"><label class="label" for="email">Email</label><input class="input" id="email" type="email" name="user[]" value="' . htmlspecialchars($user[2] ?? '', ENT_QUOTES, 'UTF-8') . '" required></div>
